@@ -1,0 +1,266 @@
+1. Como um exemplo de análise de tempo de execução, nós trabalharemos com o programa
+three_sum (disponibilizado no AVA como three_sum.cpp) mostrado aqui, que conta o
+número de triplas em um arquivo de N inteiros que somam 0. Essa computação pode
+parecer trivial para você, mas é profundamente relacionada com numerosas tarefas de
+computação fundamentais. Estude o código three_sum.cpp apresentado a seguir
+
+1.  #include <stdio.h>
+2.  #include <stdlib.h>
+3.  
+4.  /* Prototipos */
+5.  void leia_ints (char nome_do_arquivo[], int a[], int &n);
+6.  int conte (int a[], int n);
+7.  
+8.  /* Main */
+9.  int main() {
+10.   char filename[30];
+11.   int a[1000000], n;
+12.
+13.   // Leia o nome do arquivo
+14.   printf("Entre com o nome do arquivo:\n");
+15.   scanf("%29s", filename);
+16. 
+17.   // Carregue o arquivo no vetor a
+18.   leia_ints(filename, a, n);
+19. 
+20.   // Conte e imprima quantas vezes 3 elementos somam 0
+21.   printf("%d\n", conte(a, n));
+22. }
+23. 
+24. // Funcao que abre arquivo e carrega todos os ints para o vetor a
+25. void leia_ints (char nome_do_arquivo[], int a[], int &n) {
+26.   FILE *f;
+27.   int nread;
+28.
+29.   f = fopen(nome_do_arquivo, "r");
+30.   if (f == NULL) {
+31.     perror("Erro ao abrir o arquivo");
+32.   }
+33.   else {
+34.     n = 0;
+35.     while(1) {
+36.       nread = fscanf(f, "%d", &a[n]);
+37.       if (nread == EOF) 
+38.         break;
+39. 
+40.       n = n + 1;
+41.     }
+42.     n = n - 1;
+43.   }
+44. }
+45. 
+46. // Funcao que conta e retorna quantas vezes 3 elementos somam 0
+47. int conte (int a[], int n) {
+48.   int i, j, k, c = 0;
+49. 
+50.   for (i = 0; i < n; i++) {
+51.     for (j = i + 1; j < n; j++) {
+52.       for (k = j + 1; k < n; k++) {
+53.         if ( (a[i] + a[j] + a[k]) == 0)
+54.           c = c + 1;
+55.       }void leia_ints (char nome_do_arquivo[], int a[], int &n);
+56. int conte (int a[], int n);
+57.     }
+58.   }
+59. 
+60.   return c;
+61. }
+
+| Linha | Custo | Vezes |
+| --- | --- | --- |
+| 35 | c1 | n + 1 |
+| 36 | c2 | n + 1 |
+| 37 | c3 | n + 1 |
+| 38 | c4 | 1 |
+| 40 | c5 | n |
+| 50 | c6 | n |
+| 51 | c7 | n(n - 1) |
+| 52 | c8 | n(n - 1)(n - 2) |
+| 53 | c9 | n(n - 1)(n - 3) |
+| 54 | c10 | somatória começada em i = 2 e terminando com i = k - 1 dos i-ésimos termos de j |
+
+R: theta de n ao cubo
+
+2. Como um primeiro experimento, execute o código three_sum no seu computador para os
+conjuntos de arquivos de entrada fornecidos: 1Kints.txt, 2Kints.txt, 4Kints.txt, e
+8Kints.txt. Esses arquivos de entrada estão disponibilizados no AVA.
+Quantas triplas existem no arquivo 1Kints.txt? E no arquivo 2Kints.txt? E no restante
+de arquivos de entradas 4Kints.txt e 8Kints.txt?
+
+| Arquivo | Saída |
+| --- | --- |
+| 1Kints.txt | 70 |
+| 2Kints.txt | 528 |
+| 4Kints.txt | 4036 |
+| 8Kints.txt | 32065 |
+
+3. O arquivo de entrada 1Mints.txt contém 1 milhão de números inteiros. O algoritmo
+three_sum consegue nos dizer quantas triplas existem que somam 0, porém ele consegue
+fazê-lo em uma quantidade razoável de tempo? (Por enquanto, apenas reflita sobre essa
+questão. Você conseguirá respondê-la ao final desta lista de exercícios.)
+
+R: Acho que não.
+
+4. Frequentemente você se perguntará a seguinte questão: “Quanto tempo meu programa
+levará?”. Como você verá, responder essa questão para esse programa é relativamente
+fácil. Nós apresentaremos uma predição precisa para medir o tempo que o programa leva
+para a execução.
+Mensurar de forma confiável o tempo de execução exato de um dado programa pode ser
+difícil. Felizmente, em geral estamos satisfeitos com estimativas. Nós queremos ser capazes
+de distinguir programas que terminam em alguns segundos ou alguns minutos daqueles
+que podem requerer dias, meses ou mais. Ademais, estamos interessados em saber quando
+um programa é duas vezes mais rápido que outro programa para a mesma tarefa.
+Estudo o código stopwatch.cpp fornecido a seguir.
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+int conte (int a[], int n);
+
+/* Main */
+int main() {
+  char filename[30];
+  int a[1000000], n, i;
+  double time1, timedif;
+
+  srand(time(NULL));
+
+  // Leia um valor n
+  printf("n:\n");
+  scanf("%d", &n);
+
+  // Preencha o vetor a com n numeros inteiros aleatorios
+  for (i = 0; i < n; i++)
+    // numeros entre -10000 e 9999
+    a[i] = (rand() % 20000) - 10000;
+
+  time1 = (double) clock();            /* get initial time */
+  time1 = time1 / CLOCKS_PER_SEC;      /*    in seconds    */
+
+  // Conte e imprima quantas vezes 3 elementos somam 0
+  printf("%d\n", conte(a, n));
+
+  // Calcule e imprima o tempo gasto
+  timedif = ( ((double) clock()) / CLOCKS_PER_SEC) - time1;
+  printf("The elapsed time is %lf seconds\n", timedif);
+}
+
+// Funcao que conta e retorna quantas vezes 3 elementos somam 0
+int conte (int a[], int n) {
+  int i, j, k, c = 0;
+
+  for (i = 0; i < n; i++) {
+    for (j = i + 1; j < n; j++) {
+      for (k = j + 1; k < n; k++) {
+        if ( (a[i] + a[j] + a[k]) == 0)
+          c = c + 1;
+      }
+    }
+  }
+
+  return c;
+}
+
+5. Utilizando do código stop_watch apresentado na questão 4 (e disponível no AVA como
+stopwatch.cpp), qual o tempo necessário para executar para os tamanhos de entrada:
+
+| Tamanho de entrada | Tempo (segundos) |
+| --- | --- |
+| 1000 | 0.267100 |
+| 2000 | 2.089190 |
+| 4000 | 16.621110 |
+| 8000 | 133.895726 |
+
+6. Compare os tempos obtidos com algum colega de sala. Os tempos são similares?
+
+R: Sim, com a minha máquina sendo ligeiramente mais lenta
+
+7. O programa doubling_test a seguir (disponibilizado no AVA como doubling_test.cpp)
+é mais sofisticado que stopwatch, produzindo dados experimentais para o three_sum.
+Quando você executa doubling_test, você observará que as primeiras linhas são impressas rapidamente, entretanto desacelerará consideravelmente. A cada linha impressa, você
+se perguntará quanto tempo levará até imprimir a próxima linha. Obviamente, uma vez
+que você execute em máquinas diferentes, o tempo de execução que se obterá provavelmente será diferente. Execute doubling_test, fornecendo 10000 (dez mil) como valor de N. Anote os tamanhos e tempos obtidos.
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+int conte (int a[], int n);
+
+/* Main */
+int main() {
+  char filename[30];
+  int a[1000000], n, i, k;
+  double time1, timedif;
+
+  // Leia um valor n
+  printf("n: ");
+  scanf("%d", &n);
+
+  srand(time(NULL));
+
+  for (k = 250; k < n; k += k) {
+
+    // Preencha o vetor a com n numeros inteiros aleatorios
+    for (i = 0; i < k; i++)
+        a[i] = (rand() % 20000) - 10000;
+
+    time1 = (double) clock();            /* get initial time */
+    time1 = time1 / CLOCKS_PER_SEC;      /*    in seconds    */
+
+    conte(a, k);
+
+    timedif = ( ((double) clock()) / CLOCKS_PER_SEC) - time1;
+    printf("%7d %5.1lf\n", k, timedif);
+  }
+}
+
+// Funcao que conta e retorna quantas vezes 3 elementos somam 0
+int conte (int a[], int n) {
+  int i, j, k, c = 0;
+
+  for (i = 0; i < n; i++) {
+    for (j = i + 1; j < n; j++) {
+      for ((1)k = j + 1; k < n; k++) {
+        if ( (a[i] + a[j] + a[k]) == 0)
+          c = c + 1;
+      }
+    }
+  }
+
+  return c;
+}
+
+| Tamanho da entrada | Tempo (segundos) |
+| --- | --- |
+| 250 | 0.0 |
+| 500 | 0.0 |
+| 1000 | 0.3 |
+| 2000 | 2.1 |
+| 4000 | 16.8 |
+| 8000 | 134.0 |
+
+8. Na análise da complexidade de um algoritmo, de maneira geral estamos interessados em
+responder a seguinte pergunta “Quanto tempo levará o meu programa para executar, como
+uma função do tamanho da entrada?”. Essa é uma pergunta difícil de responder. Para
+propósitos desta aula prática, irei facilitar e estarei lhe fornecendo a equação do tempo de
+execução: $T(N)=aN^{3}$ onde N é o tamanho da entrada, e a é uma constante.
+Considere o tempo que você obteve anteriormente para uma entrada de tamanho 8000 (oito
+mil). Calcule o valor do a. Reescreva a função substituindo o a com o valor estimado.
+Atenção: o valor de a é específico para a sua máquina
+
+R: a = 0.00000000026171875
+
+9. Fazendo uso da equação obtida anteriormente, qual o tempo estimado para se encontrar
+triplas que somam 0 dado um conjunto de entrada 1 milhão de elementos inteiros?
+
+R: T(1000000) = 261718750
+
+| Segundos | Minutos | Horas | Dias | Meses | Anos |
+| --- | --- | --- | --- | --- | --- |
+| 261718750 | 4361979.167 | 72699.65278 | 3029.152199 | 99.58856545 | 8.299047121 |
+
+10. Por fim, volte e responda a questão 3.
+
+R: Ele não consegue fazer isso em um tempo razoável, visto que demoraria pouco mais de 8 anos para completar todo o processo.
